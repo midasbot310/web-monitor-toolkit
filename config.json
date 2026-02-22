@@ -1,0 +1,17 @@
+{
+    "sites": [
+        "https://www.puzzledaddy.store/"
+    ],
+    "settings": {
+        "timeout": 10,
+        "user_agent": "MidasBot-WebMonitor/1.0",
+        "crawl_enabled": true,
+        "crawl_limit": 50
+    },
+    "google_services": {
+        "enabled": true,
+        "ga_property_id": "123456789",
+        "gsc_site_url": "https://www.puzzledaddy.store/",
+        "service_account_file": "path/to/key.json"
+    }
+}
