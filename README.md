@@ -4,9 +4,12 @@ A Python-based toolkit for auditing and monitoring websites. Designed to be exte
 
 ## Features
 
+- **Recursive Crawler:** Maps internal site structure.
 - **Health Checks:** Monitor HTTP status codes, response times, and redirects.
 - **SEO Audits:** Check for critical meta tags (Title, Description, H1, Canonical).
 - **Security Audits:** Verify SSL certificate validity and expiration.
+- **Google Integration (Stub):** Hooks for Google Analytics 4 and Search Console.
+- **Reporting:** Generates HTML dashboard with metrics.
 
 ## Installation
 
@@ -16,46 +19,21 @@ A Python-based toolkit for auditing and monitoring websites. Designed to be exte
     cd web-monitor-toolkit
     ```
 
-2.  (Optional) Create a virtual environment:
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-3.  Install dependencies (if any):
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *Note: Currently, the toolkit uses standard Python libraries only, so no external dependencies are required.*
-
 ## Usage
 
-1.  Edit `config.json` to add target websites:
-    ```json
-    {
-      "sites": [
-        "https://www.puzzledaddy.store/"
-      ],
-      "settings": {
-        "timeout": 10
-      }
-    }
-    ```
+1.  Edit `config.json` to add target websites and configure settings.
 
-2.  Run the audit:
+2.  Run the audit (crawl mode):
     ```bash
-    python3 main.py
+    python3 main.py --crawl --url https://www.puzzledaddy.store/
     ```
 
-3.  Audit a specific URL:
-    ```bash
-    python3 main.py --url https://example.com
-    ```
+3.  The report will be generated as `report_YYYYMMDD.html`.
 
-## Future Roadmap
+## Google Integration
 
-- [ ] Broken Link Checker (Recursive Crawler)
-- [ ] Core Web Vitals (via Lighthouse/PageSpeed API)
-- [ ] Accessibility Checks (WCAG compliance)
-- [ ] Keyword Ranking Tracker
-- [ ] Email Alerts for Downtime
+To enable real Google data:
+1.  Obtain a `service_account.json` from Google Cloud Console.
+2.  Install libraries: `pip install google-api-python-client google-analytics-data`
+3.  Update `plugins/google_services.py` with the actual API calls (currently stubs).
+4.  Update `config.json` with your Property IDs.
