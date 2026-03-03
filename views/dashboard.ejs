@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Monitor Hub</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; background: #f0f2f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { font-size: 28px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 30px; color: #1a1a1a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        tr:hover { background-color: #f1f3f5; }
+        a { color: #0066cc; text-decoration: none; font-weight: 500; }
+        a:hover { text-decoration: underline; }
+        .diff-pos { color: #dc3545; font-weight: bold; } /* More violations is bad */
+        .diff-neg { color: #28a745; font-weight: bold; } /* Fewer violations is good */
+        .diff-zero { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Web Monitor Hub</h1>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Site Name</th>
+                    <th>Pages Crawled</th>
+                    <th>Pages Audited</th>
+                    <th>A11y Violations (Sample)</th>
+                    <th>24h Diff</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% summaries.forEach(site => { %>
+                    <tr>
+                        <td>
+                            <a href="<%= site.siteId %>.html"><%= site.siteName %></a>
+                            <br><small style="color: #666;"><%= site.targetUrl %></small>
+                        </td>
+                        <td><%= site.totalPagesDiscovered %></td>
+                        <td><%= site.auditPageCount %></td>
+                        <td><strong><%= site.totalAccessibilityViolations %></strong></td>
+                        <td>
+                            <% if (site.violationDiff > 0) { %>
+                                <span class="diff-pos">▲ +<%= site.violationDiff %></span>
+                            <% } else if (site.violationDiff < 0) { %>
+                                <span class="diff-neg">▼ <%= site.violationDiff %></span>
+                            <% } else { %>
+                                <span class="diff-zero">-</span>
+                            <% } %>
+                        </td>
+                        <td style="color: #666; font-size: 14px;">
+                            <%= new Date(site.timestamp).toLocaleDateString() %> <%= new Date(site.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

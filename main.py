@@ -104,7 +104,10 @@ def main():
                 }
 
             # Generate Report
-            reporter = HTMLReporter(f"report_{datetime.now().strftime('%Y%m%d')}.html")
+            reports_dir = os.path.expanduser("~/Documents/reports")
+            os.makedirs(reports_dir, exist_ok=True)
+            report_path = os.path.join(reports_dir, f"report_{datetime.now().strftime('%Y%m%d')}.html")
+            reporter = HTMLReporter(report_path)
             reporter.generate(mapped_results, google_data)
 
         else:

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Monitor Toolkit Report - <%= report.targetUrl %></title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; background: #f9f9f9; }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .timestamp { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+        .card h2 { margin-top: 0; font-size: 18px; color: #0056b3; }
+        .metric-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
+        .metric { background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 4px; flex: 1 1 calc(33% - 15px); min-width: 250px; }
+        .metric strong { display: block; font-size: 12px; text-transform: uppercase; color: #777; margin-bottom: 5px; }
+        .metric span { font-size: 14px; font-weight: 500; }
+        .pass { color: #28a745; font-weight: bold; }
+        .fail { color: #dc3545; font-weight: bold; }
+        .warn { color: #ffc107; font-weight: bold; }
+        code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" style="text-decoration: none; color: #0056b3; font-size: 14px; margin-bottom: 20px; display: inline-block;">&larr; Back to Hub</a>
+        <h1>Website Audit Report: <%= report.siteName %></h1>
+        <div class="timestamp">Generated on: <%= new Date(report.timestamp).toLocaleString() %></div>
+
+        <% report.results.forEach(result => { %>
+            <div class="card">
+                <h2>URL: <a href="<%= result.url %>" target="_blank"><%= result.url %></a></h2>
+                
+                <div class="metric-group">
+                    <div class="metric">
+                        <strong>Title Tag</strong>
+                        <span>
+                            <% if(result.seo.title) { %>
+                                <%= result.seo.title %>
+                                <% if(result.seo.title.length > 60) { %> <span class="warn">(Long: <%= result.seo.title.length %> chars)</span> <% } else { %> <span class="pass">(OK)</span> <% } %>
+                            <% } else { %>
+                                <span class="fail">Missing</span>
+                            <% } %>
+                        </span>
+                    </div>
+
+                    <div class="metric">
+                        <strong>Meta Description</strong>
+                        <span>
+                            <% if(result.seo.metaDescription) { %>
+                                <%= result.seo.metaDescription %>
+                                <% if(result.seo.metaDescription.length > 160) { %> <span class="warn">(Long)</span> <% } else { %> <span class="pass">(OK)</span> <% } %>
+                            <% } else { %>
+                                <span class="fail">Missing</span>
+                            <% } %>
+                        </span>
+                    </div>
+
+                    <div class="metric">
+                        <strong>H1 Count</strong>
+                        <span>
+                            <%= result.seo.h1Count %>
+                            <% if(result.seo.h1Count === 1) { %> <span class="pass">(Perfect)</span> <% } else if(result.seo.h1Count === 0) { %> <span class="fail">(Missing)</span> <% } else { %> <span class="warn">(Multiple)</span> <% } %>
+                        </span>
+                    </div>
+
+                    <div class="metric">
+                        <strong>Canonical URL</strong>
+                        <span>
+                            <% if(result.seo.canonicalUrl) { %>
+                                <code><%= result.seo.canonicalUrl %></code> <span class="pass">(Present)</span>
+                            <% } else { %>
+                                <span class="fail">Missing</span>
+                            <% } %>
+                        </span>
+                    </div>
+                    
+                    <div class="metric">
+                        <strong>Open Graph</strong>
+                        <span>
+                            <% if(result.seo.ogTitle && result.seo.ogImage) { %>
+                                <span class="pass">Present</span>
+                            <% } else { %>
+                                <span class="warn">Incomplete</span>
+                            <% } %>
+                        </span>
+                    </div>
+
+                    <div class="metric">
+                        <strong>Accessibility Violations</strong>
+                        <span>
+                            <%= result.accessibility.violationCount %>
+                            <% if(result.accessibility.violationCount === 0) { %> <span class="pass">(Pass)</span> <% } else { %> <span class="fail">(Fail)</span> <% } %>
+                        </span>
+                    </div>
+                </div>
+
+                <% if (result.accessibility.violations.length > 0) { %>
+                    <div style="margin-top: 15px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffecb5;">
+                        <strong>Axe-Core Warnings:</strong>
+                        <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <% result.accessibility.violations.forEach(v => { %>
+                                <li><code><%= v.id %></code> (<%= v.impact %>): <%= v.description %></li>
+                            <% }) %>
+                        </ul>
+                    </div>
+                <% } %>
+            </div>
+        <% }) %>
+
+    </div>
+</body>
+</html>
