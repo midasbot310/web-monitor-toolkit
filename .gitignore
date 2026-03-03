@@ -1,2 +1,8 @@
-.venv/
-__pycache__/
+node_modules/
+dist/
+storage/
+data/
+public/
+*.png
+*.html
+service_account.json
