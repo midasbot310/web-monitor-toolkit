@@ -16,6 +16,11 @@ export interface AuditResult {
         violations: any[];
         violationCount: number;
     };
+    links: {
+        totalFound: number;
+        brokenCount: number;
+        brokenLinks: string[];
+    };
 }
 
 export async function runDeepAudit(urls: string[]): Promise<AuditResult[]> {
@@ -46,12 +51,40 @@ export async function runDeepAudit(urls: string[]): Promise<AuditResult[]> {
             // Run Accessibility Audit using Axe
             const accessibilityResults = await new AxeBuilder({ page }).analyze();
             
+            // Link Checker
+            const pageLinks = await page.$$eval('a', els => els.map(el => el.href).filter(href => href.startsWith('http')));
+            const uniqueLinks = Array.from(new Set(pageLinks));
+            const brokenLinks: string[] = [];
+            
+            console.log(`Checking ${uniqueLinks.length} links on ${url}...`);
+            
+            // Check links in parallel batches to be fast but polite
+            const batchSize = 10;
+            for (let i = 0; i < uniqueLinks.length; i += batchSize) {
+                const batch = uniqueLinks.slice(i, i + batchSize);
+                await Promise.all(batch.map(async (linkUrl) => {
+                    try {
+                        const res = await fetch(linkUrl, { method: 'HEAD', headers: { 'User-Agent': 'Mozilla/5.0' } });
+                        if (res.status >= 400 && res.status !== 403 && res.status !== 401) {
+                             brokenLinks.push(linkUrl);
+                        }
+                    } catch (e) {
+                        brokenLinks.push(linkUrl);
+                    }
+                }));
+            }
+            
             results.push({
                 url,
                 seo,
                 accessibility: {
                     violations: accessibilityResults.violations.map(v => ({ id: v.id, impact: v.impact, description: v.description })),
                     violationCount: accessibilityResults.violations.length
+                },
+                links: {
+                    totalFound: uniqueLinks.length,
+                    brokenCount: brokenLinks.length,
+                    brokenLinks
                 }
             });
 

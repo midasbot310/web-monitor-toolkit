@@ -93,7 +93,30 @@
                             <% if(result.accessibility.violationCount === 0) { %> <span class="pass">(Pass)</span> <% } else { %> <span class="fail">(Fail)</span> <% } %>
                         </span>
                     </div>
+
+                    <div class="metric">
+                        <strong>Broken Links</strong>
+                        <span>
+                            <% if (result.links) { %>
+                                <%= result.links.brokenCount %> / <%= result.links.totalFound %>
+                                <% if(result.links.brokenCount === 0) { %> <span class="pass">(Pass)</span> <% } else { %> <span class="fail">(Fail)</span> <% } %>
+                            <% } else { %>
+                                <span class="warn">N/A</span>
+                            <% } %>
+                        </span>
+                    </div>
                 </div>
+
+                <% if (result.links && result.links.brokenCount > 0) { %>
+                    <div style="margin-top: 15px; background: #f8d7da; padding: 10px; border-left: 4px solid #dc3545; color: #721c24;">
+                        <strong>Broken Links Found:</strong>
+                        <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <% result.links.brokenLinks.forEach(l => { %>
+                                <li><a href="<%= l %>" target="_blank" style="color: #721c24;"><%= l %></a></li>
+                            <% }) %>
+                        </ul>
+                    </div>
+                <% } %>
 
                 <% if (result.accessibility.violations.length > 0) { %>
                     <div style="margin-top: 15px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffecb5;">

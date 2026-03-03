@@ -28,7 +28,7 @@ export interface SiteSummary {
     timestamp: string;
 }
 
-export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number, brokenLinksCount: number): Promise<SiteSummary> {
+export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number): Promise<SiteSummary> {
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
     if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
 
@@ -47,6 +47,7 @@ export async function generateReport(siteId: string, siteName: string, targetUrl
     fs.writeFileSync(latestFile, JSON.stringify(currentResults, null, 2));
 
     const totalViolations = currentResults.reduce((acc, r) => acc + r.accessibility.violationCount, 0);
+    const totalBrokenLinks = currentResults.reduce((acc, r) => acc + (r.links ? r.links.brokenCount : 0), 0);
     
     let previousTotalViolations = 0;
     if (previousResults) {
@@ -78,7 +79,7 @@ export async function generateReport(siteId: string, siteName: string, targetUrl
         targetUrl,
         totalPagesDiscovered,
         auditPageCount: currentResults.length,
-        brokenLinksCount,
+        brokenLinksCount: totalBrokenLinks,
         totalAccessibilityViolations: totalViolations,
         violationDiff,
         timestamp: reportData.timestamp

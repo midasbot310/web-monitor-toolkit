@@ -118,7 +118,6 @@ async function processSite(site: any) {
     console.log(`Total Pages Discovered: ${pageGraph.size}`);
     
     const sortedPages = Array.from(pageGraph.values()).sort((a, b) => b.internalInboundLinks - a.internalInboundLinks);
-    const brokenLinksCount = Array.from(pageGraph.values()).filter(p => p.status >= 400).length;
     
     // --- Phase 3: Deep Audit ---
     const { runDeepAudit } = await import('./audit');
@@ -142,7 +141,7 @@ async function processSite(site: any) {
     
     // --- Phase 4: Reporting ---
     const { generateReport } = await import('./report');
-    const summary = await generateReport(siteId, site.name, targetUrl, auditResults, sortedPages.length, brokenLinksCount);
+    const summary = await generateReport(siteId, site.name, targetUrl, auditResults, sortedPages.length);
     return summary;
 }
 
