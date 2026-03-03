@@ -2,6 +2,7 @@
   {
     "id": "puzzledaddy-staging",
     "name": "Puzzledaddy Staging",
-    "url": "https://puzzle-dev--puzzledaddy.netlify.app/"
+    "url": "https://puzzle-dev--puzzledaddy.netlify.app/",
+    "auditLimit": 5
   }
 ]

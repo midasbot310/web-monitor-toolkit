@@ -32,19 +32,21 @@ npx playwright install chromium
 ```
 
 ### 3. Configuration
-Add the domains you want to track to the `sites.json` file in the root directory.
+Add the domains you want to track to the `sites.json` file in the root directory. You can optionally specify an `auditLimit` per site to control how many pages get the deep, slow audit (defaults to 5).
 
 ```json
 [
   {
     "id": "puzzledaddy-staging",
     "name": "Puzzledaddy Staging",
-    "url": "https://puzzle-dev--puzzledaddy.netlify.app/"
+    "url": "https://puzzle-dev--puzzledaddy.netlify.app/",
+    "auditLimit": 5
   },
   {
     "id": "puzzledaddy-prod",
     "name": "Puzzledaddy Production",
-    "url": "https://www.puzzledaddy.store/"
+    "url": "https://www.puzzledaddy.store/",
+    "auditLimit": 10
   }
 ]
 ```

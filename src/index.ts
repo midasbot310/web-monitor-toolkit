@@ -131,7 +131,7 @@ async function processSite(site: any) {
     else sampleUrlsSet.add(targetUrl);
 
     for (const p of sortedPages) {
-        if (sampleUrlsSet.size >= 5) break;
+        if (sampleUrlsSet.size >= (site.auditLimit || 5)) break;
         if (p.status < 400) {
             sampleUrlsSet.add(p.url);
         }
