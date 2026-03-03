@@ -1,4 +1,4 @@
-import { PlaywrightCrawler, Dataset, enqueueLinks, Sitemap } from 'crawlee';
+import { PlaywrightCrawler, Dataset, enqueueLinks, Sitemap, RequestQueue } from 'crawlee';
 import { URL } from 'url';
 import fs from 'fs';
 import path from 'path';
@@ -53,7 +53,14 @@ async function processSite(site: any) {
         startUrls = [targetUrl];
     }
 
+    // Use a fresh named queue for each site so state doesn't leak between crawls
+    const queueName = `queue-${siteId}`;
+    const requestQueue = await RequestQueue.open(queueName);
+    await requestQueue.drop(); // clear any previous run state
+    const cleanQueue = await RequestQueue.open(queueName);
+
     const crawler = new PlaywrightCrawler({
+        requestQueue: cleanQueue,
         maxRequestsPerCrawl: 100,
         
         async requestHandler({ request, page, enqueueLinks, response, log }) {
