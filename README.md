@@ -1,39 +1,78 @@
 # Web Monitor Toolkit
 
-A Python-based toolkit for auditing and monitoring websites. Designed to be extensible and modular.
+A high-performance, Hub-and-Spoke toolkit for auditing, monitoring, and tracking the health of multiple websites. Built with **TypeScript**, **Node.js**, **Playwright**, and **Crawlee**.
 
 ## Features
 
-- **Recursive Crawler:** Maps internal site structure.
-- **Health Checks:** Monitor HTTP status codes, response times, and redirects.
-- **SEO Audits:** Check for critical meta tags (Title, Description, H1, Canonical).
-- **Security Audits:** Verify SSL certificate validity and expiration.
-- **Google Integration (Stub):** Hooks for Google Analytics 4 and Search Console.
-- **Reporting:** Generates HTML dashboard with metrics.
+- **Multi-Site Hub Dashboard:** Manage and view top-level metrics for 5-10+ domains in one place.
+- **Sitemap Crawling:** Automatically fetches `sitemap.xml` and discovers all relevant URLs.
+- **Internal Link Analysis:** Builds a site map graph and automatically samples the most-interlinked pages.
+- **Deep Audits:** Uses Playwright to extract SEO (Titles, Meta, H1s), Open Graph data, and Canonical Tags.
+- **Accessibility:** Runs full WCAG compliance checks using `axe-core`.
+- **Historical Diffing:** Tracks daily changes (e.g., "Gained 2 accessibility warnings since yesterday").
 
-## Installation
+---
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/midasbot310/web-monitor-toolkit.git
-    cd web-monitor-toolkit
-    ```
+## Installation & Setup
 
-## Usage
+> **Note:** This toolkit is built in **Node.js / TypeScript**, not Python. It requires Node and NPM to be installed on your system.
 
-1.  Edit `config.json` to add target websites and configure settings.
+### 1. Prerequisites
+Ensure you have Node.js (v18+) installed.
 
-2.  Run the audit (crawl mode):
-    ```bash
-    python3 main.py --crawl --url https://www.puzzledaddy.store/
-    ```
+### 2. Install Dependencies
+Clone the repository, then install the required Node modules and Playwright browsers:
 
-3.  The report will be generated as `report_YYYYMMDD.html`.
+```bash
+# Install package dependencies
+npm install
 
-## Google Integration
+# Install Playwright headless browsers (required for crawling and Axe-Core)
+npx playwright install chromium
+```
 
-To enable real Google data:
-1.  Obtain a `service_account.json` from Google Cloud Console.
-2.  Install libraries: `pip install google-api-python-client google-analytics-data`
-3.  Update `plugins/google_services.py` with the actual API calls (currently stubs).
-4.  Update `config.json` with your Property IDs.
+### 3. Configuration
+Add the domains you want to track to the `sites.json` file in the root directory.
+
+```json
+[
+  {
+    "id": "puzzledaddy-staging",
+    "name": "Puzzledaddy Staging",
+    "url": "https://puzzle-dev--puzzledaddy.netlify.app/"
+  },
+  {
+    "id": "puzzledaddy-prod",
+    "name": "Puzzledaddy Production",
+    "url": "https://www.puzzledaddy.store/"
+  }
+]
+```
+
+---
+
+## Running the Toolkit
+
+To execute the crawl, audit, and report generation pipeline:
+
+```bash
+npm start
+```
+
+*(Alternatively: `npx ts-node src/index.ts`)*
+
+### Output
+
+1. **Raw Data:** JSON results are saved in the `data/` directory (e.g., `puzzledaddy-staging_latest.json`).
+2. **Dashboard:** A static HTML Hub and individual site reports are generated in the `public/` directory.
+
+To view the results, open `public/index.html` in your web browser.
+
+---
+
+## Architecture Overview
+
+1. **Crawler Phase:** Maps the entire domain via sitemap and checks for global 404s.
+2. **Sampling Phase:** Selects the homepage + top most-linked pages for deep analysis.
+3. **Audit Phase:** Runs `cheerio` and `axe-core` via Playwright headless browser to extract SEO data and find accessibility violations.
+4. **Reporting Phase:** Generates a clean EJS-templated HTML dashboard with 24-hour historical diff tracking.

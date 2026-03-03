@@ -1,9 +1,10 @@
 {
   "name": "web-monitor-toolkit",
   "version": "1.0.0",
-  "description": "A Python-based toolkit for auditing and monitoring websites. Designed to be extensible and modular.",
+  "description": "A TypeScript/Node.js toolkit for auditing and monitoring websites.",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
