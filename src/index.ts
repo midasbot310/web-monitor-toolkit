@@ -147,6 +147,10 @@ async function start() {
     await generateDashboard(siteSummaries);
 
     console.log('\n--- Web Monitor Toolkit Execution Complete ---');
+    process.exit(0);
 }
 
-start().catch(console.error);
+start().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});
