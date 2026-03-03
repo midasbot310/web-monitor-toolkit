@@ -29,6 +29,7 @@
                     <th>Site Name</th>
                     <th>Pages Crawled</th>
                     <th>Pages Audited</th>
+                    <th>Broken Links</th>
                     <th>A11y Violations (Sample)</th>
                     <th>24h Diff</th>
                     <th>Last Updated</th>
@@ -43,6 +44,13 @@
                         </td>
                         <td><%= site.totalPagesDiscovered %></td>
                         <td><%= site.auditPageCount %></td>
+                        <td>
+                            <% if (site.brokenLinksCount > 0) { %>
+                                <span class="diff-pos"><%= site.brokenLinksCount %></span>
+                            <% } else { %>
+                                <span class="diff-neg">0</span>
+                            <% } %>
+                        </td>
                         <td><strong><%= site.totalAccessibilityViolations %></strong></td>
                         <td>
                             <% if (site.violationDiff > 0) { %>

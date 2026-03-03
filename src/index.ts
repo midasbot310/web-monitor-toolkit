@@ -118,15 +118,31 @@ async function processSite(site: any) {
     console.log(`Total Pages Discovered: ${pageGraph.size}`);
     
     const sortedPages = Array.from(pageGraph.values()).sort((a, b) => b.internalInboundLinks - a.internalInboundLinks);
+    const brokenLinksCount = Array.from(pageGraph.values()).filter(p => p.status >= 400).length;
     
     // --- Phase 3: Deep Audit ---
     const { runDeepAudit } = await import('./audit');
-    const sampleUrls = sortedPages.slice(0, 5).map(p => p.url);
+    
+    const sampleUrlsSet = new Set<string>();
+    
+    // Always include the root/home page
+    const homepageRegex = new RegExp(`^${targetUrl.replace(/\/$/, '')}/?$`);
+    const homepageNode = sortedPages.find(p => homepageRegex.test(p.url));
+    if (homepageNode) sampleUrlsSet.add(homepageNode.url);
+    else sampleUrlsSet.add(targetUrl);
+
+    for (const p of sortedPages) {
+        if (sampleUrlsSet.size >= 5) break;
+        if (p.status < 400) {
+            sampleUrlsSet.add(p.url);
+        }
+    }
+    const sampleUrls = Array.from(sampleUrlsSet);
     const auditResults = await runDeepAudit(sampleUrls);
     
     // --- Phase 4: Reporting ---
     const { generateReport } = await import('./report');
-    const summary = await generateReport(siteId, site.name, targetUrl, auditResults, sortedPages.length);
+    const summary = await generateReport(siteId, site.name, targetUrl, auditResults, sortedPages.length, brokenLinksCount);
     return summary;
 }
 

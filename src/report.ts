@@ -22,12 +22,13 @@ export interface SiteSummary {
     targetUrl: string;
     totalPagesDiscovered: number;
     auditPageCount: number;
+    brokenLinksCount: number;
     totalAccessibilityViolations: number;
     violationDiff: number; // vs previous run
     timestamp: string;
 }
 
-export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number): Promise<SiteSummary> {
+export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number, brokenLinksCount: number): Promise<SiteSummary> {
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
     if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
 
@@ -77,6 +78,7 @@ export async function generateReport(siteId: string, siteName: string, targetUrl
         targetUrl,
         totalPagesDiscovered,
         auditPageCount: currentResults.length,
+        brokenLinksCount,
         totalAccessibilityViolations: totalViolations,
         violationDiff,
         timestamp: reportData.timestamp
