@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import ejs from 'ejs';
 import { AuditResult } from './audit';
+import { SiteHealthResult } from './site-health';
 
 const dataDir = path.join(__dirname, '../data');
 const publicDir = path.join(__dirname, '../public');
@@ -12,6 +13,7 @@ export interface ReportData {
     siteName: string;
     targetUrl: string;
     results: AuditResult[];
+    siteHealth: SiteHealthResult;
     previousResults?: AuditResult[];
     diffs?: any;
 }
@@ -25,10 +27,11 @@ export interface SiteSummary {
     brokenLinksCount: number;
     totalAccessibilityViolations: number;
     violationDiff: number; // vs previous run
+    siteHealth: SiteHealthResult;
     timestamp: string;
 }
 
-export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number): Promise<SiteSummary> {
+export async function generateReport(siteId: string, siteName: string, targetUrl: string, currentResults: AuditResult[], totalPagesDiscovered: number, siteHealth: SiteHealthResult): Promise<SiteSummary> {
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
     if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
 
@@ -61,6 +64,7 @@ export async function generateReport(siteId: string, siteName: string, targetUrl
         siteName,
         targetUrl,
         results: currentResults,
+        siteHealth,
         previousResults
     };
 
@@ -82,6 +86,7 @@ export async function generateReport(siteId: string, siteName: string, targetUrl
         brokenLinksCount: totalBrokenLinks,
         totalAccessibilityViolations: totalViolations,
         violationDiff,
+        siteHealth,
         timestamp: reportData.timestamp
     };
 }

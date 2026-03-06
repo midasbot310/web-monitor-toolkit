@@ -30,8 +30,9 @@
                     <th>Pages Crawled</th>
                     <th>Pages Audited</th>
                     <th>Broken Links</th>
-                    <th>A11y Violations (Sample)</th>
-                    <th>24h Diff</th>
+                    <th>A11y Violations</th>
+                    <th>SSL Cert</th>
+                    <th>GA4 Traffic (3d)</th>
                     <th>Last Updated</th>
                 </tr>
             </thead>
@@ -51,14 +52,36 @@
                                 <span class="diff-neg">0</span>
                             <% } %>
                         </td>
-                        <td><strong><%= site.totalAccessibilityViolations %></strong></td>
                         <td>
+                            <strong><%= site.totalAccessibilityViolations %></strong>
                             <% if (site.violationDiff > 0) { %>
-                                <span class="diff-pos">▲ +<%= site.violationDiff %></span>
+                                <small class="diff-pos">(▲ +<%= site.violationDiff %>)</small>
                             <% } else if (site.violationDiff < 0) { %>
-                                <span class="diff-neg">▼ <%= site.violationDiff %></span>
+                                <small class="diff-neg">(▼ <%= site.violationDiff %>)</small>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (site.siteHealth && site.siteHealth.ssl) { %>
+                                <% if (site.siteHealth.ssl.valid && site.siteHealth.ssl.daysRemaining > 14) { %>
+                                    <span class="diff-neg">Valid (<%= site.siteHealth.ssl.daysRemaining %>d)</span>
+                                <% } else if (site.siteHealth.ssl.valid && site.siteHealth.ssl.daysRemaining <= 14) { %>
+                                    <span class="diff-pos" style="color: #ff9800;">Expiring soon (<%= site.siteHealth.ssl.daysRemaining %>d)</span>
+                                <% } else { %>
+                                    <span class="diff-pos">Invalid</span>
+                                <% } %>
                             <% } else { %>
-                                <span class="diff-zero">-</span>
+                                <span class="diff-zero">N/A</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (site.siteHealth && site.siteHealth.trafficAnomaly) { %>
+                                <% if (site.siteHealth.trafficAnomaly.isAnomaly) { %>
+                                    <span class="diff-pos">▼ <%= site.siteHealth.trafficAnomaly.percentChange %>% (<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</span>
+                                <% } else { %>
+                                    <span class="diff-neg"><%= site.siteHealth.trafficAnomaly.percentChange > 0 ? '+' : '' %><%= site.siteHealth.trafficAnomaly.percentChange %>% (<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</span>
+                                <% } %>
+                            <% } else { %>
+                                <span class="diff-zero">N/A</span>
                             <% } %>
                         </td>
                         <td style="color: #666; font-size: 14px;">
