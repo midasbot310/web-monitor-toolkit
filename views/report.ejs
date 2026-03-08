@@ -27,6 +27,72 @@
         <h1>Website Audit Report: <%= report.siteName %></h1>
         <div class="timestamp">Generated on: <%= new Date(report.timestamp).toLocaleString() %></div>
 
+        <!-- Site-Wide Health Section -->
+        <div class="card" style="border-left: 4px solid #0056b3; margin-bottom: 30px;">
+            <h2>Site-Wide Health & Analytics</h2>
+            <div class="metric-group">
+                <div class="metric">
+                    <strong>SSL Certificate</strong>
+                    <span>
+                        <% if (report.siteHealth && report.siteHealth.ssl) { %>
+                            <% if (report.siteHealth.ssl.valid) { %>
+                                <span class="<%= report.siteHealth.ssl.daysRemaining > 14 ? 'pass' : 'warn' %>">Valid (<%= report.siteHealth.ssl.daysRemaining %> days left)</span>
+                            <% } else { %>
+                                <span class="fail">Invalid / Expired</span>
+                            <% } %>
+                        <% } else { %>
+                            <span class="warn">N/A</span>
+                        <% } %>
+                    </span>
+                </div>
+
+                <div class="metric">
+                    <strong>GA4 Traffic (Last 7 Days)</strong>
+                    <span>
+                        <% if (report.siteHealth && report.siteHealth.trafficAnomaly) { %>
+                            <%= report.siteHealth.trafficAnomaly.currentUsers %> users
+                            <% const tChange = report.siteHealth.trafficAnomaly.percentChange; %>
+                            <% if (report.siteHealth.trafficAnomaly.isAnomaly) { %>
+                                <span class="fail">(▼ <%= tChange %>%)</span>
+                            <% } else { %>
+                                <span class="pass">(<%= tChange > 0 ? '+' : '' %><%= tChange %>%)</span>
+                            <% } %>
+                            <br><small style="font-size:11px; color:#666;">vs previous 7 days (<%= report.siteHealth.trafficAnomaly.previousUsers %>)</small>
+                        <% } else { %>
+                            <span class="warn">Not Configured</span>
+                        <% } %>
+                    </span>
+                </div>
+
+                <div class="metric">
+                    <strong>GSC Search Visibility (7d)</strong>
+                    <span>
+                        <% if (report.siteHealth && report.siteHealth.gscData) { %>
+                            <% const gsc = report.siteHealth.gscData; %>
+                            Clicks: <span class="<%= gsc.clicksAnomaly ? 'fail' : '' %>"><%= gsc.currentClicks %></span> | 
+                            Imp: <span class="<%= gsc.impressionsAnomaly ? 'fail' : '' %>"><%= gsc.currentImpressions %></span><br>
+                            Avg Pos: <%= gsc.avgPosition.toFixed(1) %>
+                        <% } else { %>
+                            <span class="warn">Not Configured</span>
+                        <% } %>
+                    </span>
+                </div>
+            </div>
+
+            <% if (report.siteHealth && report.siteHealth.gscData && report.siteHealth.gscData.topKeywords.length > 0) { %>
+                <div style="margin-top: 15px; font-size: 13px;">
+                    <strong>Top Keywords (by Impressions):</strong>
+                    <ul style="margin: 5px 0 0 0; padding-left: 20px;">
+                        <% report.siteHealth.gscData.topKeywords.forEach(kw => { %>
+                            <li>"<%= kw.keyword %>" — Pos: <%= kw.position.toFixed(1) %>, Clicks: <%= kw.clicks %>, Imp: <%= kw.impressions %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <% } %>
+        </div>
+
+        <h2>Page-Level Deep Audits</h2>
+
         <% report.results.forEach(result => { %>
             <div class="card">
                 <h2>URL: <a href="<%= result.url %>" target="_blank"><%= result.url %></a></h2>

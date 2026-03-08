@@ -50,17 +50,17 @@ export async function checkSiteHealth(hostname: string, ga4PropertyId?: string, 
             const keyFile = path.join(__dirname, '../service_account.json');
             const analyticsDataClient = new BetaAnalyticsDataClient({ keyFilename: keyFile });
 
-            // Fetch last 3 days
+            // Fetch last 7 days
             const [currentResponse] = await analyticsDataClient.runReport({
                 property: `properties/${ga4PropertyId}`,
-                dateRanges: [{ startDate: '3daysAgo', endDate: 'today' }],
+                dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
                 metrics: [{ name: 'activeUsers' }],
             });
 
-            // Fetch previous 3 days for comparison
+            // Fetch previous 7 days for comparison
             const [previousResponse] = await analyticsDataClient.runReport({
                 property: `properties/${ga4PropertyId}`,
-                dateRanges: [{ startDate: '6daysAgo', endDate: '4daysAgo' }],
+                dateRanges: [{ startDate: '14daysAgo', endDate: '8daysAgo' }],
                 metrics: [{ name: 'activeUsers' }],
             });
 
@@ -79,7 +79,7 @@ export async function checkSiteHealth(hostname: string, ga4PropertyId?: string, 
                 isAnomaly: percentChange <= -40 // Flag if traffic dropped by 40% or more
             };
             
-            console.log(`GA4 Traffic: ${currentUsers} users (last 3d) vs ${previousUsers} users (prev 3d) -> ${trafficAnomaly.percentChange}%`);
+            console.log(`GA4 Traffic: ${currentUsers} users (last 7d) vs ${previousUsers} users (prev 7d) -> ${trafficAnomaly.percentChange}%`);
 
         } catch (e) {
             console.error(`GA4 Check failed for property ${ga4PropertyId}:`, (e as Error).message);
@@ -100,12 +100,12 @@ export async function checkSiteHealth(hostname: string, ga4PropertyId?: string, 
             });
             const searchconsole = google.searchconsole({ version: 'v1', auth });
 
-            // 3-day blocks (excluding today as GSC is usually 2 days delayed)
+            // 7-day blocks (excluding today as GSC is usually 2-3 days delayed)
             const d1 = new Date(); d1.setDate(d1.getDate() - 3); const endDateStr = d1.toISOString().split('T')[0];
-            const d2 = new Date(); d2.setDate(d2.getDate() - 5); const startDateStr = d2.toISOString().split('T')[0];
+            const d2 = new Date(); d2.setDate(d2.getDate() - 9); const startDateStr = d2.toISOString().split('T')[0];
             
-            const d3 = new Date(); d3.setDate(d3.getDate() - 6); const prevEndDateStr = d3.toISOString().split('T')[0];
-            const d4 = new Date(); d4.setDate(d4.getDate() - 8); const prevStartDateStr = d4.toISOString().split('T')[0];
+            const d3 = new Date(); d3.setDate(d3.getDate() - 10); const prevEndDateStr = d3.toISOString().split('T')[0];
+            const d4 = new Date(); d4.setDate(d4.getDate() - 16); const prevStartDateStr = d4.toISOString().split('T')[0];
 
             const [currentRes, prevRes, topKeywordsRes] = await Promise.all([
                 searchconsole.searchanalytics.query({
