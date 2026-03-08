@@ -1,5 +1,6 @@
 import sslChecker from 'ssl-checker';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import { google } from 'googleapis';
 import path from 'path';
 
 export interface SiteHealthResult {
@@ -13,9 +14,19 @@ export interface SiteHealthResult {
         percentChange: number;
         isAnomaly: boolean;
     };
+    gscData?: {
+        impressionsAnomaly: boolean;
+        clicksAnomaly: boolean;
+        currentImpressions: number;
+        previousImpressions: number;
+        currentClicks: number;
+        previousClicks: number;
+        avgPosition: number;
+        topKeywords: { keyword: string; position: number; clicks: number; impressions: number }[];
+    };
 }
 
-export async function checkSiteHealth(hostname: string, ga4PropertyId?: string): Promise<SiteHealthResult> {
+export async function checkSiteHealth(hostname: string, ga4PropertyId?: string, gscUrl?: string): Promise<SiteHealthResult> {
     console.log(`\n--- Running Site-Wide Health Checks for ${hostname} ---`);
     
     // 1. SSL Check
@@ -77,8 +88,76 @@ export async function checkSiteHealth(hostname: string, ga4PropertyId?: string):
         console.log(`Skipping GA4: No property ID provided.`);
     }
 
+    // 3. Google Search Console Check
+    let gscData;
+    if (gscUrl) {
+        try {
+            console.log(`Checking GSC for property ${gscUrl}...`);
+            const keyFile = path.join(__dirname, '../service_account.json');
+            const auth = new google.auth.GoogleAuth({
+                keyFile,
+                scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
+            });
+            const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+            // 3-day blocks (excluding today as GSC is usually 2 days delayed)
+            const d1 = new Date(); d1.setDate(d1.getDate() - 3); const endDateStr = d1.toISOString().split('T')[0];
+            const d2 = new Date(); d2.setDate(d2.getDate() - 5); const startDateStr = d2.toISOString().split('T')[0];
+            
+            const d3 = new Date(); d3.setDate(d3.getDate() - 6); const prevEndDateStr = d3.toISOString().split('T')[0];
+            const d4 = new Date(); d4.setDate(d4.getDate() - 8); const prevStartDateStr = d4.toISOString().split('T')[0];
+
+            const [currentRes, prevRes, topKeywordsRes] = await Promise.all([
+                searchconsole.searchanalytics.query({
+                    siteUrl: gscUrl,
+                    requestBody: { startDate: startDateStr, endDate: endDateStr }
+                }),
+                searchconsole.searchanalytics.query({
+                    siteUrl: gscUrl,
+                    requestBody: { startDate: prevStartDateStr, endDate: prevEndDateStr }
+                }),
+                searchconsole.searchanalytics.query({
+                    siteUrl: gscUrl,
+                    requestBody: { startDate: startDateStr, endDate: endDateStr, dimensions: ['query'], rowLimit: 5 }
+                })
+            ]);
+
+            const current = currentRes.data.rows?.[0] || { clicks: 0, impressions: 0, position: 0 };
+            const previous = prevRes.data.rows?.[0] || { clicks: 0, impressions: 0, position: 0 };
+
+            const clicksChange = previous.clicks ? ((current.clicks! - previous.clicks) / previous.clicks) * 100 : 0;
+            const impressionsChange = previous.impressions ? ((current.impressions! - previous.impressions) / previous.impressions) * 100 : 0;
+
+            const topKeywords = (topKeywordsRes.data.rows || []).map(r => ({
+                keyword: r.keys?.[0] || '',
+                position: r.position || 0,
+                clicks: r.clicks || 0,
+                impressions: r.impressions || 0
+            }));
+
+            gscData = {
+                impressionsAnomaly: impressionsChange <= -30, // Drop by 30%
+                clicksAnomaly: clicksChange <= -30,
+                currentImpressions: current.impressions || 0,
+                previousImpressions: previous.impressions || 0,
+                currentClicks: current.clicks || 0,
+                previousClicks: previous.clicks || 0,
+                avgPosition: current.position || 0,
+                topKeywords
+            };
+
+            console.log(`GSC Clicks: ${gscData.currentClicks} (prev: ${gscData.previousClicks}), Impressions: ${gscData.currentImpressions} (prev: ${gscData.previousImpressions}), Pos: ${gscData.avgPosition.toFixed(1)}`);
+            
+        } catch (e) {
+            console.error(`GSC Check failed for ${gscUrl}:`, (e as Error).message);
+        }
+    } else {
+        console.log(`Skipping GSC: No gscUrl provided.`);
+    }
+
     return {
         ssl: sslResult,
-        trafficAnomaly
+        trafficAnomaly,
+        gscData
     };
 }

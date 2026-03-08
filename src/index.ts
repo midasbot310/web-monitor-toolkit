@@ -139,9 +139,9 @@ async function processSite(site: any) {
     const sampleUrls = Array.from(sampleUrlsSet);
     const auditResults = await runDeepAudit(sampleUrls);
     
-    // --- Phase 4: Site Health (SSL & GA4) ---
+    // --- Phase 4: Site Health (SSL & GA4 & GSC) ---
     const { checkSiteHealth } = await import('./site-health');
-    const siteHealth = await checkSiteHealth(targetDomain, site.ga4PropertyId);
+    const siteHealth = await checkSiteHealth(targetDomain, site.ga4PropertyId, site.gscUrl);
 
     // --- Phase 5: Reporting ---
     const { generateReport } = await import('./report');

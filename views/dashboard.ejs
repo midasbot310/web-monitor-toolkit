@@ -6,7 +6,7 @@
     <title>Web Monitor Hub</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; background: #f0f2f5; }
-        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         h1 { font-size: 28px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 30px; color: #1a1a1a; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -17,6 +17,8 @@
         .diff-pos { color: #dc3545; font-weight: bold; } /* More violations is bad */
         .diff-neg { color: #28a745; font-weight: bold; } /* Fewer violations is good */
         .diff-zero { color: #6c757d; }
+        .kw-list { list-style: none; padding: 0; margin: 0; font-size: 12px; color: #555; }
+        .kw-list li { margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -27,13 +29,13 @@
             <thead>
                 <tr>
                     <th>Site Name</th>
-                    <th>Pages Crawled</th>
-                    <th>Pages Audited</th>
+                    <th>Audit</th>
                     <th>Broken Links</th>
-                    <th>A11y Violations</th>
+                    <th>A11y</th>
                     <th>SSL Cert</th>
-                    <th>GA4 Traffic (3d)</th>
-                    <th>Last Updated</th>
+                    <th>GA4 (3d)</th>
+                    <th>GSC (3d)</th>
+                    <th>Top Keywords</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,9 +44,9 @@
                         <td>
                             <a href="<%= site.siteId %>.html"><%= site.siteName %></a>
                             <br><small style="color: #666;"><%= site.targetUrl %></small>
+                            <br><small style="color: #999;"><%= new Date(site.timestamp).toLocaleDateString() %></small>
                         </td>
-                        <td><%= site.totalPagesDiscovered %></td>
-                        <td><%= site.auditPageCount %></td>
+                        <td style="font-size: 14px;"><%= site.auditPageCount %> / <%= site.totalPagesDiscovered %> pgs</td>
                         <td>
                             <% if (site.brokenLinksCount > 0) { %>
                                 <span class="diff-pos"><%= site.brokenLinksCount %></span>
@@ -55,17 +57,17 @@
                         <td>
                             <strong><%= site.totalAccessibilityViolations %></strong>
                             <% if (site.violationDiff > 0) { %>
-                                <small class="diff-pos">(▲ +<%= site.violationDiff %>)</small>
+                                <br><small class="diff-pos">(▲ +<%= site.violationDiff %>)</small>
                             <% } else if (site.violationDiff < 0) { %>
-                                <small class="diff-neg">(▼ <%= site.violationDiff %>)</small>
+                                <br><small class="diff-neg">(▼ <%= site.violationDiff %>)</small>
                             <% } %>
                         </td>
                         <td>
                             <% if (site.siteHealth && site.siteHealth.ssl) { %>
                                 <% if (site.siteHealth.ssl.valid && site.siteHealth.ssl.daysRemaining > 14) { %>
-                                    <span class="diff-neg">Valid (<%= site.siteHealth.ssl.daysRemaining %>d)</span>
+                                    <span class="diff-neg">Valid<br><small>(<%= site.siteHealth.ssl.daysRemaining %>d)</small></span>
                                 <% } else if (site.siteHealth.ssl.valid && site.siteHealth.ssl.daysRemaining <= 14) { %>
-                                    <span class="diff-pos" style="color: #ff9800;">Expiring soon (<%= site.siteHealth.ssl.daysRemaining %>d)</span>
+                                    <span class="diff-pos" style="color: #ff9800;">Expiring<br><small>(<%= site.siteHealth.ssl.daysRemaining %>d)</small></span>
                                 <% } else { %>
                                     <span class="diff-pos">Invalid</span>
                                 <% } %>
@@ -73,19 +75,39 @@
                                 <span class="diff-zero">N/A</span>
                             <% } %>
                         </td>
-                        <td>
+                        <td style="font-size: 14px;">
                             <% if (site.siteHealth && site.siteHealth.trafficAnomaly) { %>
                                 <% if (site.siteHealth.trafficAnomaly.isAnomaly) { %>
-                                    <span class="diff-pos">▼ <%= site.siteHealth.trafficAnomaly.percentChange %>% (<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</span>
+                                    <span class="diff-pos">▼ <%= site.siteHealth.trafficAnomaly.percentChange %>%<br><small>(<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</small></span>
                                 <% } else { %>
-                                    <span class="diff-neg"><%= site.siteHealth.trafficAnomaly.percentChange > 0 ? '+' : '' %><%= site.siteHealth.trafficAnomaly.percentChange %>% (<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</span>
+                                    <span class="diff-neg"><%= site.siteHealth.trafficAnomaly.percentChange > 0 ? '+' : '' %><%= site.siteHealth.trafficAnomaly.percentChange %>%<br><small>(<%= site.siteHealth.trafficAnomaly.currentUsers %> users)</small></span>
                                 <% } %>
                             <% } else { %>
                                 <span class="diff-zero">N/A</span>
                             <% } %>
                         </td>
-                        <td style="color: #666; font-size: 14px;">
-                            <%= new Date(site.timestamp).toLocaleDateString() %> <%= new Date(site.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
+                        <td style="font-size: 14px;">
+                            <% if (site.siteHealth && site.siteHealth.gscData) { %>
+                                <% const gsc = site.siteHealth.gscData; %>
+                                <div>
+                                    Imp: <span class="<%= gsc.impressionsAnomaly ? 'diff-pos' : '' %>"><%= gsc.currentImpressions %></span><br>
+                                    Clk: <span class="<%= gsc.clicksAnomaly ? 'diff-pos' : '' %>"><%= gsc.currentClicks %></span><br>
+                                    Pos: <%= gsc.avgPosition.toFixed(1) %>
+                                </div>
+                            <% } else { %>
+                                <span class="diff-zero">N/A</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (site.siteHealth && site.siteHealth.gscData && site.siteHealth.gscData.topKeywords.length > 0) { %>
+                                <ul class="kw-list">
+                                    <% site.siteHealth.gscData.topKeywords.slice(0, 3).forEach(kw => { %>
+                                        <li>"<%= kw.keyword %>" (#<%= kw.position.toFixed(1) %>)</li>
+                                    <% }) %>
+                                </ul>
+                            <% } else { %>
+                                <span class="diff-zero">-</span>
+                            <% } %>
                         </td>
                     </tr>
                 <% }) %>
