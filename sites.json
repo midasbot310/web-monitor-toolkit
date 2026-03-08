@@ -3,6 +3,7 @@
     "id": "puzzledaddy-staging",
     "name": "Puzzledaddy Staging",
     "url": "https://puzzle-dev--puzzledaddy.netlify.app/",
+    "ga4PropertyId": "435480374",
     "auditLimit": 5
   }
 ]

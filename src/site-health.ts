@@ -36,7 +36,7 @@ export async function checkSiteHealth(hostname: string, ga4PropertyId?: string):
     if (ga4PropertyId) {
         try {
             console.log(`Checking GA4 Traffic for property ${ga4PropertyId}...`);
-            const keyFile = path.join(__dirname, '../../service_account.json');
+            const keyFile = path.join(__dirname, '../service_account.json');
             const analyticsDataClient = new BetaAnalyticsDataClient({ keyFilename: keyFile });
 
             // Fetch last 3 days
