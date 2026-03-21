@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FormData from 'form-data';
 
 export interface MastodonConfig {
     instanceUrl: string;
@@ -6,12 +7,34 @@ export interface MastodonConfig {
     visibility?: 'public' | 'unlisted' | 'private' | 'direct';
 }
 
-export async function postToMastodon(config: MastodonConfig, status: string): Promise<void> {
-    const url = `${config.instanceUrl.replace(/\/$/, '')}/api/v1/statuses`;
-    
+export async function postToMastodon(config: MastodonConfig, status: string, mediaUrl?: string): Promise<void> {
+    const baseUrl = config.instanceUrl.replace(/\/$/, '');
+    let mediaIds: string[] = [];
+
     try {
-        await axios.post(url, {
+        if (mediaUrl) {
+            console.log(`Downloading media from ${mediaUrl}...`);
+            const imageResponse: any = await axios.get(mediaUrl, { responseType: 'arraybuffer' });
+            
+            const form = new FormData();
+            form.append('file', Buffer.from(imageResponse.data), {
+                filename: 'poster.jpg',
+                contentType: 'image/jpeg'
+            });
+
+            console.log('Uploading media to Mastodon...');
+            const uploadResponse: any = await axios.post(`${baseUrl}/api/v1/media`, form, {
+                headers: {
+                    ...form.getHeaders(),
+                    'Authorization': `Bearer ${config.accessToken}`
+                }
+            });
+            mediaIds.push(uploadResponse.data.id);
+        }
+
+        await axios.post(`${baseUrl}/api/v1/statuses`, {
             status,
+            media_ids: mediaIds,
             visibility: config.visibility || 'unlisted'
         }, {
             headers: {
