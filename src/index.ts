@@ -2,6 +2,7 @@ import { PlaywrightCrawler, Dataset, enqueueLinks, Sitemap, RequestQueue } from 
 import { URL } from 'url';
 import fs from 'fs';
 import path from 'path';
+import 'dotenv/config';
 
 const sitesFile = path.join(__dirname, '../sites.json');
 const sites = JSON.parse(fs.readFileSync(sitesFile, 'utf-8'));
@@ -164,6 +165,30 @@ async function start() {
     // Generate Hub Dashboard
     const { generateDashboard } = await import('./report');
     await generateDashboard(siteSummaries);
+
+    // --- Phase 6: Mastodon Notification ---
+    if (process.env.MASTODON_ACCESS_TOKEN && process.env.MASTODON_INSTANCE_URL) {
+        try {
+            const { postToMastodon } = await import('./mastodon');
+            const totalSites = siteSummaries.length;
+            const totalIssues = siteSummaries.reduce((acc, s) => acc + s.totalAccessibilityViolations + s.brokenLinksCount, 0);
+            const totalNewIssues = siteSummaries.reduce((acc, s) => acc + (s.violationDiff > 0 ? s.violationDiff : 0), 0);
+            
+            let status = `📊 Daily Web Monitor Report\n\n- Sites Monitored: ${totalSites}\n- Total Issues: ${totalIssues}`;
+            if (totalNewIssues > 0) {
+                status += `\n- ⚠️ New issues today: ${totalNewIssues}`;
+            }
+            status += `\n- Dashboard: https://your-report-url.com`; // placeholder for now
+            
+            await postToMastodon({
+                instanceUrl: process.env.MASTODON_INSTANCE_URL,
+                accessToken: process.env.MASTODON_ACCESS_TOKEN,
+                visibility: 'unlisted'
+            }, status);
+        } catch (e) {
+            console.error('Error sending Mastodon notification:', e);
+        }
+    }
 
     console.log('\n--- Web Monitor Toolkit Execution Complete ---');
     process.exit(0);

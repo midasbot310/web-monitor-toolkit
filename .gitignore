@@ -6,3 +6,4 @@ public/
 *.png
 *.html
 service_account.json
+.env
