@@ -5,6 +5,8 @@ A high-performance, Hub-and-Spoke toolkit for auditing, monitoring, and tracking
 ## Features
 
 - **Multi-Site Hub Dashboard:** Manage and view top-level metrics for 5-10+ domains in one place.
+- **Mastodon Integration:** Automatically posts daily summaries and reviews with media support.
+  - **Persona:** Direct, opinionated captions. No fluff like "Honestly" or "Just watched".
 - **Sitemap Crawling:** Automatically fetches `sitemap.xml` and discovers all relevant URLs.
 - **Internal Link Analysis:** Builds a site map graph and automatically samples the most-interlinked pages.
 - **Deep Audits:** Uses Playwright to extract SEO (Titles, Meta, H1s), Open Graph data, and Canonical Tags.

@@ -174,11 +174,11 @@ async function start() {
             const totalIssues = siteSummaries.reduce((acc, s) => acc + s.totalAccessibilityViolations + s.brokenLinksCount, 0);
             const totalNewIssues = siteSummaries.reduce((acc, s) => acc + (s.violationDiff > 0 ? s.violationDiff : 0), 0);
             
-            let status = `📊 Daily Web Monitor Report\n\n- Sites Monitored: ${totalSites}\n- Total Issues: ${totalIssues}`;
+            let status = `Daily Web Monitor Report\n\n- Sites: ${totalSites}\n- Total Issues: ${totalIssues}`;
             if (totalNewIssues > 0) {
-                status += `\n- ⚠️ New issues today: ${totalNewIssues}`;
+                status += `\n- ⚠️ New: ${totalNewIssues}`;
             }
-            status += `\n- Dashboard: https://your-report-url.com`; // placeholder for now
+            status += `\n- Dashboard: https://your-report-url.com`; 
             
             await postToMastodon({
                 instanceUrl: process.env.MASTODON_INSTANCE_URL,
